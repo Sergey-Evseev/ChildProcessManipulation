@@ -26,7 +26,8 @@ namespace ChildProcessManipulation
         [DllImport("user32.dll")] //атрибут импорта с входящим параметром с относ. именем
 
         //функция библииотеки, имя можно менять через entry point конструктора DllImport
-        public static extern IntPtr SendMessage();
+        public static extern IntPtr SendMessage(IntPtr hwnd, uint Msg, int uParam,
+            [MarshalAs(UnmanagedType.LPStr)] string lParam);
 
         
         public ManipulationForm()
