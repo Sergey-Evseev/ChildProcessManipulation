@@ -20,6 +20,12 @@ namespace ChildProcessManipulation
 {
     public partial class ManipulationForm : Form
     {
+        public ManipulationForm()
+        {
+            InitializeComponent();
+            LoadSelectedAssemblies();
+        }
+
         //константа, идентифицирующая сообщение WM_SETTEXT
         const uint WM_SETTEXT = 0x0C;
         //импорт ф-ции SendMessage из биб. user32.dll
@@ -35,10 +41,7 @@ namespace ChildProcessManipulation
         List<Process> Processes = new List<Process>();
         //счетчик запущенных процессов
         int counter = 0;
-        public ManipulationForm()
-        {
-            InitializeComponent();
-        }
+        
         //метод загружающий доступные исполняемые файлы из директории проекта
         void LoadSelectedAssemblies() 
         {
@@ -54,18 +57,42 @@ namespace ChildProcessManipulation
             string[] files = Directory.GetFiles(Application.StartupPath, "*.exe");
 
             foreach (var file in files)//проходимся по получ. массиву
-                {
+            {
                 //получаем имя каждого файла массива
                 string fileName = new FileInfo(file).Name;
 
                 //если имя файла не содержит имени исполняемого файла проекта,
                 //(новый, не относится к родительскому процессу)
-                //то оно добавляется в список
+                //то оно добавляется в список (SelectAssemblies - listbox гл.формы
                 if (fileName.IndexOf(except) == -1)
                     SelectAssemblies.Items.Add(fileName);
-
-                }
+            }
         }
         
+        //метод, запускающий процесс на исполнение и сохраняющий объект, его описывающий
+        void RunProcess(string AssemblyName)//принимает файл, который будет запускаться 
+        {
+            //запуск процесса на основании исполняемого файла 
+            Process proc = Process.Start(AssemblyName);
+            //добавляем запущенный процесс в список Processes объявленный ранее
+            Processes.Add(proc);
+            //проверяем, стал ли созданный процесс дочерним, по отношению к текущему,
+            //и, если стал, выводим MessageBox
+            if (Process.GetCurrentProcess().Id == GetParentProcessId(proc.Id))
+            {
+
+
+            }    
+
+
+
+
+
+
+
+
+
+        }
+
     }
 }
