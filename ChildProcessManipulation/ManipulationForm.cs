@@ -18,6 +18,8 @@ using System.Management; //доп.возможности управления п
 
 namespace ChildProcessManipulation
 {
+    //делегат для метода вызова процесса по имени, декларирует принятие процесса
+    delegate void ProcessDelegate(Process proc);
     public partial class ManipulationForm : Form
     {
         public ManipulationForm()
@@ -28,6 +30,7 @@ namespace ChildProcessManipulation
 
         //константа, идентифицирующая сообщение WM_SETTEXT
         const uint WM_SETTEXT = 0x0C;
+        
         //импорт ф-ции SendMessage из биб. user32.dll
         [DllImport("user32.dll")] //атрибут импорта с входящим параметром с относ. именем
 
@@ -83,8 +86,10 @@ namespace ChildProcessManipulation
                 MessageBox.Show(proc.ProcessName + " действительно дочерний процесс" +
                     " текущего процесса");
             }
+            
             //указываем, что процесс должен генерить события
             proc.EnableRaisingEvents = true;
+            
             //добавляем обработчик на события завершения процесса
             proc.Exited += (sender, e) =>//запись метода обработчика через лямбда-выражение
             {
@@ -105,6 +110,8 @@ namespace ChildProcessManipulation
             }; //end of proc.Exited += (sender, e)
 
 
+            
+            //**********этот блок возможно не нужен *******************************
             //устанавливаем новый текст главному окну дочернего процесса
             SetChildWindowText(proc.MainWindowHandle, "Child process =" + (++counter));
             //проверяем запускали ли мы экземпляр такого приложения и,
@@ -114,12 +121,29 @@ namespace ChildProcessManipulation
 
             //убираем приложение из списка доступых приложений
             SelectAssemblies.Items.Remove(SelectAssemblies.SelectedItem);
+            //***********этот блок выше возможно не нужен *******************************
 
-            
-            
+
+
 
         }//=============end of void RunProcess(string AssemblyName)=============
 
+
+        //метод проходящий по всем дочерним процессам с заданным переданным именем,
+        //и выполняющий для этих процессов заданный делегатом метод
+        void ExecuteOnProcessesByName(string ProcessName, ProcessDelegate act)
+        {
+            //получаем список запущенных в ОС процессов
+            Process[] processes = Process.GetProcessesByName(ProcessName);
+
+            foreach (var process in processes)
+            //если PID родительского процесса равен PID текущего процесса
+            {
+                act(process); //то запускаем метод
+            }
+
+        }
+        
         //метод обертывания для отправки сообщения
         void SetChildWindowText(IntPtr Handle, string text)
         {
@@ -127,6 +151,7 @@ namespace ChildProcessManipulation
                                                       //что сообщение будет менять заголовок окна
         }
 
+        
         //--------------------------------
         //вспомогательный метод, получающий (интовый) ID родительского процесса
         //от переданного ему в качестве аргумента процесса
