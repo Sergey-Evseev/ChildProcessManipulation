@@ -80,19 +80,74 @@ namespace ChildProcessManipulation
             //и, если стал, выводим MessageBox
             if (Process.GetCurrentProcess().Id == GetParentProcessId(proc.Id))
             {
+                MessageBox.Show(proc.ProcessName + " действительно дочерний процесс" +
+                    " текущего процесса");
+            }
+            //указываем, что процесс должен генерить события
+            proc.EnableRaisingEvents = true;
+            //добавляем обработчик на события завершения процесса
+            proc.Exited += (sender, e) =>//запись метода обработчика через лямбда-выражение
+            {
+                //типизирование параметра sender как объект Process (cast to a Process)
+                var pr = sender as Process;
+                //на событие убираем процесс из списка запущенных приложений
+                StartedAssemblies.Items.Remove(pr.ProcessName);
+                //и добавляем процесс в список доступных приложений (возвращаем в 1-й листобокс)
+                SelectAssemblies.Items.Add(pr.ProcessName);
+                //уменьшаем счетчик дочерних процессов на 1
+                counter--;
+                int index = 0;
+
+                //меняем текст для главных окон всех дочерних процессов
+                foreach (var r in Processes) //по списку дочерних процессов
+                    SetChildWindowText(r.MainWindowHandle, 
+                        "Child process =" + (++index));
+            }; //end of proc.Exited += (sender, e)
 
 
-            }    
+            //устанавливаем новый текст главному окну дочернего процесса
+            SetChildWindowText(proc.MainWindowHandle, "Child process =" + (++counter));
+            //проверяем запускали ли мы экземпляр такого приложения и,
+            //если нет, то добавляем в список запущенных приложений
+            if (!StartedAssemblies.Items.Contains(proc.ProcessName))
+                StartedAssemblies.Items.Add(proc.ProcessName);
 
+            //убираем приложение из списка доступых приложений
+            SelectAssemblies.Items.Remove(SelectAssemblies.SelectedItem);
 
+            
+            
 
+        }//=============end of void RunProcess(string AssemblyName)=============
 
-
-
-
-
-
+        //метод обертывания для отправки сообщения
+        void SetChildWindowText(IntPtr Handle, string text)
+        {
+            SendMessage(Handle, WM_SETTEXT, 0, text); //WM_SETTEXT константа
+                                                      //что сообщение будет менять заголовок окна
         }
 
-    }
+        //--------------------------------
+        //вспомогательный метод, получающий (интовый) ID родительского процесса
+        //от переданного ему в качестве аргумента процесса
+        int GetParentProcessId(int Id)
+        {
+            int parentId = 0;
+            //параметр "win32_process.handle" - получ.доступа к процессам объектов из ОС
+            //здесь формируется запрос к управляемому объекту
+            using (ManagementObject obj = new ManagementObject("win32_process.handle=" +
+                Id.ToString()))
+            {
+                obj.Get();
+                //по имени процесса через внутренний индексатор получаем его номер
+                parentId = Convert.ToInt32(obj["ParentProcessId"]);
+            }
+            return parentId; //и возвращаем его номер
+                             //если родительский процесс не найден вернется 0
+        }
+        //-------------------------------
+
+
+
+    }//end of public partial class ManipulationForm : Form
 }
