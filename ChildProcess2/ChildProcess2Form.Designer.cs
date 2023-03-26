@@ -44,7 +44,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(179, 72);
+            this.ClientSize = new System.Drawing.Size(204, 81);
             this.Controls.Add(this.label1);
             this.Name = "ChildProcess2Form";
             this.Text = "Process 2";
