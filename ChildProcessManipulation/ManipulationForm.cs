@@ -125,7 +125,6 @@ namespace ChildProcessManipulation
 
 
 
-
         }//=============end of void RunProcess(string AssemblyName)=============
 
 
@@ -133,16 +132,19 @@ namespace ChildProcessManipulation
         //и выполняющий для этих процессов заданный делегатом метод
         void ExecuteOnProcessesByName(string ProcessName, ProcessDelegate act)
         {
-            //получаем список запущенных в ОС процессов
+            //получаем в массиве список запущенных в ОС процессов
             Process[] processes = Process.GetProcessesByName(ProcessName);
 
-            foreach (var process in processes)
+            //проходимся по каждому найденному процессу
+            foreach (var r in processes)
             //если PID родительского процесса равен PID текущего процесса
+            if (Process.GetCurrentProcess().Id == GetParentProcessId(r.Id))
             {
-                act(process); //то запускаем метод
+                act(r); //то запускаем метод
             }
 
         }
+
         
         //метод обертывания для отправки сообщения
         void SetChildWindowText(IntPtr Handle, string text)
@@ -169,10 +171,23 @@ namespace ChildProcessManipulation
             }
             return parentId; //и возвращаем его номер
                              //если родительский процесс не найден вернется 0
+        }//-------------------------------
+
+
+        //Кнопка Start запускает процесс, который мы выбрали из списка 
+        private void StartButton_Click(object sender, EventArgs e)
+        {
+            RunProcess(SelectAssemblies.SelectedItem.ToString()); ;
         }
-        //-------------------------------
 
+        //метод завершения процесса
+        void Kill(Process p) => p.Kill();
 
-
+        //обработчик события кнопки Stop
+        private void StopButton_Click(object sender, EventArgs e)
+        {
+            ExecuteOnProcessesByName(StartedAssemblies).
+                SelectedItem.ToString(), Kill);
+        }
     }//end of public partial class ManipulationForm : Form
 }
