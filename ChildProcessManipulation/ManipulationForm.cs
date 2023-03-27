@@ -177,7 +177,8 @@ namespace ChildProcessManipulation
         //Кнопка Start запускает процесс, который мы выбрали из списка 
         private void StartButton_Click(object sender, EventArgs e)
         {
-            RunProcess(SelectAssemblies.SelectedItem.ToString()); ;
+            RunProcess(SelectAssemblies.SelectedItem.ToString()); 
+            //-в winforms в лист бокс процессы в виде object, поэтому треб. преобр. к строке 
         }
 
         //метод завершения процесса
@@ -186,8 +187,23 @@ namespace ChildProcessManipulation
         //обработчик события кнопки Stop
         private void StopButton_Click(object sender, EventArgs e)
         {
-            ExecuteOnProcessesByName(StartedAssemblies).
+            ExecuteOnProcessesByName(StartedAssemblies.
                 SelectedItem.ToString(), Kill);
+
+            //после завершения процесса убираем его из списка запущенных
+            StartedAssemblies.Items.Remove(StartedAssemblies.SelectedItem);
+        }
+
+        //метод кнопки закрытия окна частично прописан с лямбда-выражением
+        private void CloseWindowButton_Click(object sender, EventArgs e)
+        {
+            //method takes two parameters, a string representing the name of a process,
+            //and an action to perform on that process
+            ExecuteOnProcessesByName(StartedAssemblies.
+                SelectedItem.ToString(), (p) => p.CloseMainWindow());
+            //-CloseMainWindow() закрывает процесс главного окна и затем дочерние процессы
+
+            StartedAssemblies.Items.Remove(StartedAssemblies.SelectedItem);
         }
     }//end of public partial class ManipulationForm : Form
 }

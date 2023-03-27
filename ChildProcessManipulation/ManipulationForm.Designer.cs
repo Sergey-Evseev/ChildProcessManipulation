@@ -81,6 +81,7 @@
             this.CloseWindowButton.TabIndex = 1;
             this.CloseWindowButton.Text = "Close Window";
             this.CloseWindowButton.UseVisualStyleBackColor = true;
+            this.CloseWindowButton.Click += new System.EventHandler(this.CloseWindowButton_Click);
             // 
             // RefreshButton
             // 
